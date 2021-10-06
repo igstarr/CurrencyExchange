@@ -12,5 +12,7 @@ namespace Biz.Interface
         Task<DateTime> FindClosestBankingDay(DateTime dateToCheck);
 
         Task<SearchRequestParameters> CreateSearchParamsAsync(DateTime dateToCheck, string currency);
+
+        Task<CurrencyIn> Run(DateTime dateToCheck, int amount, string fromCurrency, string toCurrency);
     }
 }

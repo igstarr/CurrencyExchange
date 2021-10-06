@@ -1,4 +1,15 @@
 ﻿// See https://aka.ms/new-console-template for more information
+
+using Biz.Interface;
+using Biz.Logic;
+using Microsoft.Extensions.DependencyInjection;
+
+var serviceProvider = new ServiceCollection()
+    .AddTransient<IExchange, Exchange>()
+    .AddTransient<IApiService, ApiService>()
+    .BuildServiceProvider();
+
+
 bool keeprunning = true;
 
 while (keeprunning)
@@ -33,6 +44,9 @@ while (keeprunning)
         else
             Errors.Add("To currency is not supported");
 
+        if (toCurrency == fromCurrency)
+            Errors.Add("Cant use the same currencies");
+
         if (!DateTime.TryParse(splitstring[3], out DateTime dateToCheck))
             Errors.Add("Cant parse date");
         else if (dateToCheck > DateTime.Now)
@@ -41,7 +55,10 @@ while (keeprunning)
 
         if (Errors.Count == 0)
         {
-            Console.WriteLine("Exchanged");
+            var bar = serviceProvider.GetService<IExchange>();
+            var currency = await bar.Run(dateToCheck,amount,fromCurrency,toCurrency);
+            Console.WriteLine($"Your {currency.Amount} {currency.FromCurrency} will become: {Math.Round(currency.OutAmount,4)} " +
+                $"{currency.ToCurrency} which gives an exchange course of: {currency.ExchangeRate} @Banking day: {currency.DateToCheck.Date}");
         }
     }
     foreach (var error in Errors)

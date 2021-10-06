@@ -1,4 +1,5 @@
-﻿using sweaWebService;
+﻿using Biz.Interface;
+using sweaWebService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Biz.Logic
 {
-    public class ApiService
+    public class ApiService : IApiService
     {
         public async Task<bool> CheckIfBankingDay(DateTime dateToCheck)
         {

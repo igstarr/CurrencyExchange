@@ -27,22 +27,23 @@ namespace Biz.Logic
             }
             return dateToCheck;
         }
-        public async Task<string> Run(DateTime dateToCheck, int amount, string fromCurrency, string toCurrency)
+        public async Task<CurrencyIn> Run(DateTime dateToCheck, int amount, string fromCurrency, string toCurrency)
         {
             var currency = new CurrencyIn(dateToCheck, amount, fromCurrency, toCurrency);
-            var exchangeRate = GetExchangeRate(currency);
-            return "";
+            currency.DateToCheck = await FindClosestBankingDay(dateToCheck);
+            currency.UpdateExchangeRateAndAmount(await GetExchangeRate(currency));
+            return currency;
         }
         public async Task<double> GetExchangeRate(CurrencyIn currency) 
         {
-            var searchParamsToCurrency = await CreateSearchParamsAsync(currency.dateToCheck, currency.toCurrency);
-            var searchParamsFromCurrency = await CreateSearchParamsAsync(currency.dateToCheck, currency.fromCurrency);
+            var searchParamsToCurrency = await CreateSearchParamsAsync(currency.DateToCheck, currency.ToCurrency);
+            var searchParamsFromCurrency = await CreateSearchParamsAsync(currency.DateToCheck, currency.FromCurrency);
 
             var itemToExchange = await _service.GetInterestAndExchangeRates(searchParamsToCurrency);
 
-            var itemFromExchange = currency.fromCurrency == "SEK" ? 1 : await _service.GetInterestAndExchangeRates(searchParamsFromCurrency);
+            var itemFromExchange = currency.FromCurrency == "SEK" ? 1 : await _service.GetInterestAndExchangeRates(searchParamsFromCurrency);
 
-            return currency.toCurrency != "SEK" ? ConvertUnknownCurrency((double)itemFromExchange, (double)itemToExchange) : (double)itemFromExchange;
+            return currency.ToCurrency != "SEK" ? Math.Round(ConvertUnknownCurrency((double)itemFromExchange, (double)itemToExchange),4) : Math.Round((double)itemFromExchange,4);
         }
         private static double ConvertUnknownCurrency(double from, double to)
         {

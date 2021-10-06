@@ -39,9 +39,12 @@ namespace Test
             Assert.True(response == DateTime.Today.AddDays(-1));
         }
         [Theory]
-        [InlineData("EUR", "USD", 8.7812, 10.159, 1.156903384503257)]
-        [InlineData("SEK", "EUR", 10.159, 10.159, 0.09843488532335859)]
+        [InlineData("EUR", "USD", 8.7812, 10.159, 1.1569)]
+        [InlineData("USD", "EUR", 10.159, 8.7812, 0.8644)]
+        [InlineData("SEK", "EUR", 10.159, 10.159, 0.0984)]
         [InlineData("EUR", "SEK", 10.159, 10.159, 10.159)]
+        [InlineData("USD", "SEK", 8.7812, 8.7812, 8.7812)]
+        [InlineData("SEK", "USD", 8.7812, 8.7812, 0.1139)]
 
         public async Task TestExchange(string from, string to, double rate1, double rate2, double expected)
         {
