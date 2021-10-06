@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace Biz
             Amount = amount;
             this.FromCurrency = fromCurrency ?? throw new ArgumentNullException(nameof(fromCurrency));
             this.ToCurrency = toCurrency ?? throw new ArgumentNullException(nameof(toCurrency));
+            
         }
         public void UpdateExchangeRateAndAmount(double exchangeRate)
         {

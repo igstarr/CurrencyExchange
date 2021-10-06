@@ -25,18 +25,11 @@ namespace Biz.Logic
             var client = new SweaWebServicePortTypeClient();
             var items = await client.getInterestAndExchangeNamesAsync(11, LanguageType.sv);
             var returnitems = new List<SearchGroupSeries>();
-            foreach (var item in items.@return.Where(x => x.groupid == "130"))
-            {
-                if (item.seriesid.Contains(currency))
-                {
-                    var additem = new SearchGroupSeries
-                    {
-                        seriesid = item.seriesid,
-                        groupid = item.groupid
-                    };
-                    returnitems.Add(additem);
-                }
-            }
+
+            var item = items.@return.FirstOrDefault(x => x.groupid == "130" && x.seriesid.Contains(currency));
+            if (item != null)
+                returnitems.Add(new SearchGroupSeries { seriesid = item.seriesid, groupid = item.groupid });
+            
             return returnitems.ToArray();
         }
         public async Task<double> GetInterestAndExchangeRates(SearchRequestParameters searchParams)

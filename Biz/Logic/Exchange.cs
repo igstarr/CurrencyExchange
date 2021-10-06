@@ -1,4 +1,5 @@
-﻿using Biz.Interface;
+﻿using Biz.Classes;
+using Biz.Interface;
 using sweaWebService;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,6 @@ namespace Biz.Logic
             bool bankingDay = false;
             while (!bankingDay)
             {
-
                 if (await _service.CheckIfBankingDay(dateToCheck))
                     break;
                 dateToCheck = dateToCheck.AddDays(-1);
@@ -29,21 +29,26 @@ namespace Biz.Logic
         }
         public async Task<CurrencyIn> Run(DateTime dateToCheck, int amount, string fromCurrency, string toCurrency)
         {
-            var currency = new CurrencyIn(dateToCheck, amount, fromCurrency, toCurrency);
+            CurrencyIn? currency = new CurrencyIn(dateToCheck, amount, fromCurrency, toCurrency);
             currency.DateToCheck = await FindClosestBankingDay(dateToCheck);
             currency.UpdateExchangeRateAndAmount(await GetExchangeRate(currency));
             return currency;
         }
-        public async Task<double> GetExchangeRate(CurrencyIn currency) 
+        public async Task<double> GetExchangeRate(CurrencyIn currency)
         {
-            var searchParamsToCurrency = await CreateSearchParamsAsync(currency.DateToCheck, currency.ToCurrency);
-            var searchParamsFromCurrency = await CreateSearchParamsAsync(currency.DateToCheck, currency.FromCurrency);
+            SearchRequestParameters? searchParamsFromCurrency = await CreateSearchParamsAsync(currency.DateToCheck, currency.FromCurrency);
+            double itemFromExchange = currency.FromCurrency == AllowedCurrencies.SEK ? 1 : await _service.GetInterestAndExchangeRates(searchParamsFromCurrency);
 
-            var itemToExchange = await _service.GetInterestAndExchangeRates(searchParamsToCurrency);
+            if (currency.ToCurrency == AllowedCurrencies.SEK)
+            {
+                return Math.Round((double)itemFromExchange, 4);
+            }
 
-            var itemFromExchange = currency.FromCurrency == "SEK" ? 1 : await _service.GetInterestAndExchangeRates(searchParamsFromCurrency);
+            SearchRequestParameters? searchParamsToCurrency = await CreateSearchParamsAsync(currency.DateToCheck, currency.ToCurrency);
+            double itemToExchange = await _service.GetInterestAndExchangeRates(searchParamsToCurrency);
 
-            return currency.ToCurrency != "SEK" ? Math.Round(ConvertUnknownCurrency((double)itemFromExchange, (double)itemToExchange),4) : Math.Round((double)itemFromExchange,4);
+
+            return currency.ToCurrency != AllowedCurrencies.SEK ? Math.Round(ConvertUnknownCurrency(itemFromExchange, itemToExchange), 4) : Math.Round((double)itemFromExchange, 4);
         }
         private static double ConvertUnknownCurrency(double from, double to)
         {

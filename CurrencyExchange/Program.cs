@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using Biz.Classes;
 using Biz.Interface;
 using Biz.Logic;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,7 @@ bool keeprunning = true;
 while (keeprunning)
 {
 
-    Console.WriteLine("Input your exchange options  ([Value] [From Currency] [To Currency] [Date YYYY-MM-DD). Available currencies: EUR, SEK, USD");
+    Console.WriteLine($"Input your exchange options  ([Value] [From Currency] [To Currency] [Date YYYY-MM-DD). Available currencies: {AllowedCurrencies.SEK}, {AllowedCurrencies.USD}, {AllowedCurrencies.EUR}, {AllowedCurrencies.CAD}");
 
     List<string> Errors = new List<string>();
     var fromCurrency = "";
@@ -31,15 +32,13 @@ while (keeprunning)
     if (Errors.Count == 0)
     {
         if (!int.TryParse(splitstring[0], out int amount))
-            Errors.Add("Cante parse amount");
-
-
-        if (splitstring[1] == "EUR" || splitstring[1] == "SEK" || splitstring[1] == "USD")
+            Errors.Add("Cant parse amount");
+        if (AllowedCurrencies.CheckIfCurrencyIsAllowed(splitstring[1]))
             fromCurrency = splitstring[1];
         else
             Errors.Add("From currency is not supported");
 
-        if (splitstring[2] == "EUR" || splitstring[2] == "SEK" || splitstring[2] == "USD")
+        if (AllowedCurrencies.CheckIfCurrencyIsAllowed(splitstring[2]))
             toCurrency = splitstring[2];
         else
             Errors.Add("To currency is not supported");
@@ -56,9 +55,9 @@ while (keeprunning)
         if (Errors.Count == 0)
         {
             var bar = serviceProvider.GetService<IExchange>();
-            var currency = await bar.Run(dateToCheck,amount,fromCurrency,toCurrency);
-            Console.WriteLine($"Your {currency.Amount} {currency.FromCurrency} will become: {Math.Round(currency.OutAmount,4)} " +
-                $"{currency.ToCurrency} which gives an exchange course of: {currency.ExchangeRate} @Banking day: {currency.DateToCheck.Date}");
+            var currency = await bar.Run(dateToCheck, amount, fromCurrency, toCurrency);
+            Console.WriteLine($"Your {currency.Amount} {currency.FromCurrency} will become: {Math.Round(currency.OutAmount, 4)} " +
+                $"{currency.ToCurrency} which gives an exchange rate of: {currency.ExchangeRate} @Banking day: {currency.DateToCheck.Date}");
         }
     }
     foreach (var error in Errors)
