@@ -19,5 +19,30 @@ namespace Biz.Logic
             }
             return false;
         }
+        public async Task<SearchGroupSeries[]> GetSeries(string currency)
+        {
+            var client = new SweaWebServicePortTypeClient();
+            var items = await client.getInterestAndExchangeNamesAsync(11, LanguageType.sv);
+            var returnitems = new List<SearchGroupSeries>();
+            foreach (var item in items.@return.Where(x => x.groupid == "130"))
+            {
+                if (item.seriesid.Contains(currency))
+                {
+                    var additem = new SearchGroupSeries
+                    {
+                        seriesid = item.seriesid,
+                        groupid = item.groupid
+                    };
+                    returnitems.Add(additem);
+                }
+            }
+            return returnitems.ToArray();
+        }
+        public async Task<double> GetInterestAndExchangeRates(SearchRequestParameters searchParams)
+        {
+            var client = new SweaWebServicePortTypeClient();
+            var items = await client.getInterestAndExchangeRatesAsync(searchParams);
+            return (double)items.@return.groups.FirstOrDefault().series.FirstOrDefault().resultrows.FirstOrDefault().value;
+        }
     }
 }
